@@ -116,11 +116,11 @@ tinyxml2::XMLElement * Employee::to_xml(tinyxml2::XMLDocument * doc) {
 
 void Employee::print() {
     std::cout << "        " << this->surname << " " << this->name  << " " << this->middlename << std::endl;
-    std::cout << "            " << "Surname: " << this->surname << std::endl;
-    std::cout << "            " << "Name: " << this->name << std::endl;
-    std::cout << "            " << "Middlename: " << this->middlename << std::endl;
-    std::cout << "            " << "Function: " << this->function << std::endl;
-    std::cout << "            " << "Salary: " << this->salary << std::endl;
+    std::cout << "            " << "surname: " << this->surname << std::endl;
+    std::cout << "            " << "name: " << this->name << std::endl;
+    std::cout << "            " << "middlename: " << this->middlename << std::endl;
+    std::cout << "            " << "function: " << this->function << std::endl;
+    std::cout << "            " << "salary: " << this->salary << std::endl;
 };
 
 Department::Department() {
