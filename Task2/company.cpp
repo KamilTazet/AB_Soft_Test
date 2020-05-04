@@ -196,7 +196,7 @@ bool Department::change_employee_attribute(std::string * emp_name, std::string a
             this->employees.insert(move(employee_element));
             *emp_name = new_name;
         }
-        else if(result == false || *old_attr_value != "Error") {
+        else if(result == false || *old_attr_value == "Error") {
             return false;
         }
         return true;
