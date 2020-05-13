@@ -1,11 +1,14 @@
 #include <stack>
+#include <memory>
 #include "command.h"
 
 
-class History {
+class History { //Класс истории изменений
 private:
-    std::stack<Command *> history;
+    std::stack<std::unique_ptr<Command>> history; //Стек изменений дляотмены
+    std::stack<std::unique_ptr<Command>> redo_history; //Стек изменений для возврата после отмены
 public:
-    void save_command(Command * cmd);
-    void undo_last_command();
+    void save_command(std::unique_ptr<Command> cmd); //Сохранения команды для отмены
+    void undo_last_command(); //Отмена последней команды
+    void redo_last_command(); //Возврат отменённой команды
 };
