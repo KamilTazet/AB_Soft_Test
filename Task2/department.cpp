@@ -68,7 +68,7 @@ bool Department::change_employee_attribute(std::string * emp_name, std::string a
         bool result;
         *old_attr_value = this->employees[*emp_name].get_attribute_value(attr_name);
         result = this->employees[*emp_name].set_attribute_value(attr_name, attr_value);
-        if((attr_name == "surname" || attr_name == "name" || attr_name == "middlename") && result == true && *old_attr_value != "Error") {
+        if((attr_name == "surname" || attr_name == "name" || attr_name == "middlename") && result == true && *old_attr_value != "Error") { //Так как ключём сотрудника в департаменте являеться ФИО, то при изменении имени, фамилии или отчества должен обновляться ключ сотрудника
             std::string new_name =  this->employees[*emp_name].get_full_name();
             auto employee_element = this->employees.extract(*emp_name);
             employee_element.key() = new_name;
@@ -82,6 +82,25 @@ bool Department::change_employee_attribute(std::string * emp_name, std::string a
     }
     else {
         std::cout << "Нет работника с именем " << *emp_name << std::endl;
+        return false;
+    }
+};
+
+bool Department::check_employee(std::string employee_name) {
+    if(this->employees.count(employee_name) != 0) {
+        return true;
+    }
+    else {
+        std::cout << "Нет работника с именем " << employee_name << std::endl;
+        return false;
+    }
+};
+
+bool Department::check_employee_attribute(std::string employee_name, std::string attribute_name) {
+    if(this->check_employee(employee_name)) {
+        return this->employees[employee_name].check_attribute_name(attribute_name);
+    }
+    else {
         return false;
     }
 };
