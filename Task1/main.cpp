@@ -3,70 +3,91 @@
 #include <mutex>
 #include <thread>
 #include <chrono>
+#include <cstdlib>
 #include <sstream>
-#define WRITERS_AMOUNT 4
-#define READERS_AMOUNT 4
-#define ITER 3
-#define SLEEP_SEC 2
-std::mutex access_read, access_write;
-std::deque<int> data_queue;
+#define WRITERS_AMOUNT 3
+#define READERS_AMOUNT 5
+#define ITER 5
+#define SLEEP_SEC 1
+int writers_counter = 0;
+int readers_counter = 0;
+std::mutex resource_access, writer_mutex, reader_mutex, reader_lock;
 
-void reader(int prm) {
-	int num1 = prm;
+
+void reader(int prm, std::deque<int> * data_queue) {
+	int num = prm;
 	int i = 0;
-    int r;
+    int value;
 	for(i; i < ITER; i++) {
         std::stringstream reader_stream;
-		access_read.lock();
-        reader_stream << std::endl;
-        reader_stream << "Reader " << num1 << " current deque:" << std::endl;
-        for(auto it = data_queue.begin(); it != data_queue.end(); it++) {
-            reader_stream << *it << " ";
+        std::stringstream reader_processing_stream;
+        reader_lock.lock();
+        reader_mutex.lock();
+        readers_counter++;
+        if(readers_counter == 1) {
+            resource_access.lock();
         }
-        reader_stream << std::endl;
-		if(!data_queue.empty()) {
-			r = data_queue.front();
-			data_queue.pop_front();
-			reader_stream << "Reader " << num1 << " read value " << r << " from queue" << std::endl;
-			// reader_stream << std::endl;
+        reader_mutex.unlock();
+        reader_lock.unlock();
+		if(!data_queue->empty()) {
+			value = data_queue->front();
+			data_queue->pop_front();
+			reader_stream << "Reader " << num << " read value " << value << " from queue" << std::endl;
 		}
 		else {
-			reader_stream << "Очередь пуста" << std::endl;
+			reader_stream << "Deque is empty" << std::endl;
+			value = 0;
 		}
-		reader_stream << std::endl;
 		std::cout << reader_stream.str();
-        std::this_thread::sleep_for(std::chrono::seconds(SLEEP_SEC));
-		access_read.unlock();
-	}
-
+        reader_mutex.lock();
+        readers_counter--;
+        if(readers_counter == 0) {
+        	resource_access.unlock();
+        }
+        reader_mutex.unlock();
+		if(value != 0) {
+			reader_processing_stream << "Reader " << num << " start processing value " << value << std::endl;
+			std::cout << reader_processing_stream.str();
+			reader_processing_stream.str(std::string());
+			std::this_thread::sleep_for(std::chrono::seconds(SLEEP_SEC));
+			reader_processing_stream << "Reader " << num << " finish processing value " << value << std::endl;
+			std::cout << reader_processing_stream.str();
+		}
+    }
 }
 
-
-void writer(int prm) {
-	int num2 = prm;
+void writer(int prm, std::deque<int> * data_queue) {
+	int num = prm;
 	int j = 0;
-    int r;
-	for(j; j < ITER; j++){
+    int value;
+	for(j; j < ITER; j++) {
         std::stringstream writer_stream;
-		access_write.lock();
-		r=1+rand()%100;
-        writer_stream << std::endl;
-		writer_stream << "Writer " << num2 << " current deque:" << std::endl;
-		for(auto it = data_queue.begin(); it != data_queue.end(); it++) {
-			writer_stream << *it << " ";
-		}
-		writer_stream << std::endl;
-		data_queue.push_back(r);
-		writer_stream << "Writer " << num2 << " write value " << r << " in queue" << std::endl;
-		writer_stream << std::endl;
+        writer_mutex.lock();
+        writers_counter++;
+        if(writers_counter == 1) {
+            reader_lock.lock();
+        }
+        writer_mutex.unlock();
+        resource_access.lock();
+        value = 1 + std::rand() % 100;
+        data_queue->push_back(value);
+        writer_stream << "Writer " << num << " write value " << value << " in queue" << std::endl;
+        writer_stream << "Writer counter = " << writers_counter << std::endl;
+		// std::this_thread::sleep_for(std::chrono::seconds(SLEEP_SEC));
 		std::cout << writer_stream.str();
-        std::this_thread::sleep_for(std::chrono::seconds(SLEEP_SEC));
-		access_write.unlock();
-	}
+        resource_access.unlock();
+        writer_mutex.lock();
+        writers_counter--;
+        if(writers_counter == 0) {
+            reader_lock.unlock();
+        }
+        writer_mutex.unlock();
+    }
 }
 
 
 int main() {
+	std::deque<int> data_queue;
 	std::thread Writers[WRITERS_AMOUNT];
     std::thread Readers[READERS_AMOUNT];
 	std::cout << "Количество итераций: " << ITER << std::endl;
@@ -74,20 +95,15 @@ int main() {
 	std::cout << "Количество читателей: " << READERS_AMOUNT << std::endl;
     int i;
 	for(i = 0; i < WRITERS_AMOUNT; i++) {
-		Writers[i] = std::thread(writer, i);
+		Writers[i] = std::thread(writer, i, &data_queue);
 	}
-	for(i = 0; i < READERS_AMOUNT; i++) {
-		Readers[i] = std::thread(reader, i);
-	}
+    for(i = 0; i < READERS_AMOUNT; i++) {
+        Readers[i] = std::thread(reader, i, &data_queue);
+    }
 	for(i = 0; i < WRITERS_AMOUNT; i++) {
 		Writers[i].join();
 	}
 	for(i = 0; i < READERS_AMOUNT; i++) {
 		Readers[i].join();
 	}
-	std::cout << "Finale deque state:" << std::endl;
-	for(auto it = data_queue.begin(); it != data_queue.end(); it++) {
-		std::cout << *it << " ";
-	}
-	std::cout << std::endl;
 }
