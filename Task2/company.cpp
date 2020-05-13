@@ -124,6 +124,34 @@ bool Company::change_employee_attribute(std::string dep_name, std::string * emp_
     }
 };
 
+bool Company::check_department(std::string department_name) {
+    if(this->departments.count(department_name) != 0) {
+        return true;
+    }
+    else {
+        std::cout << "Нет департамента с названием " << department_name << std::endl;
+        return false;
+    }
+};
+
+bool Company::check_employee(std::string department_name, std::string employee_name) {
+    if(this->check_department(department_name)) {
+        return this->departments[department_name].check_employee(employee_name);
+    }
+    else {
+        return false;
+    }
+};
+
+bool Company::check_employee_attribute(std::string department_name, std::string employee_name, std::string attribute_name) {
+    if(this->check_department(department_name)) {
+        return this->departments[department_name].check_employee_attribute(employee_name, attribute_name);
+    }
+    else {
+        return false;
+    }
+};
+
 void Company::save_doc(char * file_name) {
     tinyxml2::XMLDocument doc;
     tinyxml2::XMLDeclaration * declaration =  doc.NewDeclaration();
@@ -136,7 +164,7 @@ void Company::save_doc(char * file_name) {
     }
     doc.InsertEndChild(departments);
     if (doc.SaveFile(file_name) == tinyxml2::XML_SUCCESS) {
-        std::cout << "Сохранение прошло успешно" << std::endl;
+        std::cout << "Сохранение прошло успешно. Имя файла - " << file_name << std::endl;
     }
     else {
         std::cout << "Произошла ошибка при сохранении" << std::endl;
