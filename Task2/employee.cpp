@@ -91,6 +91,28 @@ bool Employee::set_attribute_value(std::string attr_name, std::string attr_value
     }
 };
 
+bool Employee::check_attribute_name(std::string attribute_name) {
+    if(attribute_name == "surname") {
+        return true;
+    }
+    else if(attribute_name == "name") {
+        return true;
+    }
+    else if(attribute_name == "middlename") {
+        return true;
+    }
+    else if(attribute_name == "function") {
+        return true;
+    }
+    else if(attribute_name == "salary") {
+        return true;
+    }
+    else {
+      std::cout << "Нет атрибута с именем " << attribute_name << std::endl;
+      return false;
+    }
+};
+
 tinyxml2::XMLElement * Employee::to_xml(tinyxml2::XMLDocument * doc) {
     tinyxml2::XMLElement * employment = doc->NewElement("employment");
     tinyxml2::XMLElement * surname = doc->NewElement("surname");
